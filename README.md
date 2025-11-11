@@ -37,7 +37,7 @@ O objetivo do projeto é construir um sistema eficiente, replicável e de baixo 
 
 ---
 
-## ✅ 3. Prerequisites
+3. Prerequisites
 
 Hardware
 - Arduino UNO  
@@ -58,9 +58,3 @@ Software
   - Servo.h (servomotores)
   - LiquidCrystal_I2C  (LCD 16x2) ?
   - TFT_eSPI           (TFT 160x128)?
-
-
-## ✅ 4. Installation
-
-git clone https://github.com/Grxca/SunTracker.git
-cd SunTracker
