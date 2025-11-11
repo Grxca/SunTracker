@@ -57,7 +57,7 @@ Software
 - Bibliotecas:
   - Servo.h (servomotores)
   - LiquidCrystal_I2C  (LCD 16x2) ?
-  - TFT_eSPI             (TFT 160x128)
+  - TFT_eSPI           (TFT 160x128)?
 
 
 ## ✅ 4. Installation
