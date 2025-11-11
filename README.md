@@ -9,7 +9,7 @@ O SunTracker é um protótipo de rastreamento solar automático em dois eixos qu
 
 ---
 
-1. Purpose and Scope
+1. Proposta
 
 Este repositório contém:
 - Código-fonte do sistema SunTracker  
@@ -21,23 +21,23 @@ O objetivo do projeto é construir um sistema eficiente, replicável e de baixo 
 
 ---
 
-2. Features
+2. Características
 
-- Rastreamento solar em **dois eixos (horizontal + vertical)**
-- Sistema de leitura com **4 LDRs** dispostos em cruz
+- Rastreamento solar em dois eixos (horizontal + vertical)
+- Sistema de leitura com 4 LDRs dispostos em cruz
 - Processamento diferencial de luz para ajuste de orientação
-- **Controlo com servomotores** de posicionamento
-- **Bluetooth** para ativar/desativar o modo automático
+- Controlo com servomotores de posicionamento
+- Bluetooth para ativar/desativar o modo automático
 - Interface:
-  - **LCD 16×2** → informações textuais
-  - **TFT 160×128** → representação gráfica
+  - LCD 16×2 → informações textuais
+  - TFT 160×128 → representação gráfica
 - Alimentação externa 9–12 V para funcionamento autónomo
-- Implementação com **máquinas de estados não bloqueantes**
+- Implementação com máquinas de estados não bloqueantes
 - Estrutura mecânica ajustável (3D print / acrílico / madeira)
 
 ---
 
-3. Prerequisites
+3. Pre requisitos
 
 Hardware
 - Arduino UNO  
