@@ -1,84 +1,225 @@
-SunTracker
+# 🌞 SunTracker – Rastreamento Solar Automático
 
-Autor: Martim Batista & Gonçalo Graça  
-Versão:  1.0  
-Duração do Projeto: 1 Novembro 2025 ate 15 Dezembro 2025  
-Plataforma: ESP32-C6
-Descrição
-O SunTracker é um protótipo de rastreamento solar automático em dois eixos que utiliza sensores LDR, servomotores e um microcontrolador Arduino UNO. O sistema identifica a direção de máxima luminosidade e orienta um painel fotovoltaico de forma dinâmica, maximizando a captação de energia. Inclui ainda interface TFT, controlo remoto via WI-FI e máquinas de estados não bloqueantes.
+**Autores:** Martim Batista & Gonçalo Graça  
+**Versão:** 1.0  
+**Duração:** 1 Novembro 2025 → 15 Dezembro 2025  
+**Plataforma:** ESP32-C6 DevKit  
 
 ---
 
-1. Proposta
+## 📖 Descrição
+
+O **SunTracker** é um sistema de rastreamento solar em dois eixos que utiliza um ESP32-C6, 4 LDRs e dois servos para orientar um mini painel solar automaticamente.  
+Inclui modo Automático, modo Manual via WebServer, interface TFT e máquinas de estado não bloqueantes.
+
+---
+
+## 📁 Proposta
 
 Este repositório contém:
-- Código-fonte do sistema SunTracker  
+
+- Código-fonte do sistema  
 - Documentação técnica  
-- Plano de trabalho, entregáveis e milestones  
-- Esquemas e materiais utilizados  
+- Esquemas do circuito  
+- Planeamento e milestones  
 - Manual de instalação e utilização  
-O objetivo do projeto é construir um sistema eficiente, replicável e de baixo custo para demonstrar conceitos de eletrónica, sensores, controlo automático e programação modular.
+
+Objetivo: desenvolver um sistema eficiente, modular e replicável para estudo de sensores, eletrónica e controlo.
 
 ---
 
-2. Características
+## ⚙️ Características
 
-- Rastreamento solar em dois eixos (horizontal + vertical)
-- Sistema de leitura com 4 LDRs dispostos em cruz
-- Processamento diferencial de luz para ajuste de orientação
-- Controlo com servomotores de posicionamento
-- Bluetooth para ativar/desativar o modo automático
-- Interface:
-  - TFT 160×128 → representação gráfica
-- Alimentação externa 9–12 V para funcionamento autónomo
-- Implementação com máquinas de estados não bloqueantes
-- Estrutura mecânica ajustável (3D print / acrílico / madeira)
+- Rastreamento solar horizontal + vertical  
+- Leitura de 4 LDRs para diferenças de luz  
+- Servomotores com limites de segurança  
+- WebServer Wi-Fi para controlo Manual  
+- TFT ST7735 (160×128) para interface gráfica  
+- Máquinas de estado não bloqueantes  
+- Estrutura mecânica em 3D (impressão ou acrílico)
 
 ---
 
-3. Pre requisitos
+## 🧰 Pré-Requisitos
 
-Hardware
-- ESP32-C6
-- 4 LDR  
-- 4 resistores (10kΩ)  
-- 2 servomotores (X/Y)  
-- Módulo Bluetooth serial  
-- TFT 160×128 
-- Fonte externa 5V para os servos 
-- Breadboard e cabos jumpers  
-- Estrutura mecânica (molde)
+### 🔧 Hardware
+- ESP32-C6  
+- 4 × LDR  
+- 4 × resistores 10 kΩ  
+- 2 × servos X/Y  
+- TFT ST7735  
+- Fonte externa 5 V para servos  
+- Breadboard + jumpers  
+- Suporte mecânico 3D  
 
-Software
-- Arduino IDE
-- Drivers ESP32
-- Bibliotecas:**WiFi.h**
-  - WebServer.h
-  - ESP32Servo.h
-  - Adafruit_GFX.h
-  - Adafruit_ST7735.h
-  - SPI.h
- 
-4. Ligações Principais (ESP32-C6)
+### 💻 Software
+- Arduino IDE  
+- Suporte ESP32 (Espressif)  
+- Bibliotecas:
+  - WiFi.h  
+  - WebServer.h  
+  - ESP32Servo.h  
+  - Adafruit_GFX.h  
+  - Adafruit_ST7735.h  
+  - SPI.h  
 
-LDRs (entradas analógicas)
+---
+
+## 🔌 Ligações Principais (ESP32-C6)
+
+### LDRs
 - LDR1 → A0  
 - LDR2 → A1  
 - LDR3 → A2  
 - LDR4 → A3  
 
-Servos
-- Servo Horizontal  → D6  
-- Servo Vertical    → D7  
-(5V externos recomendados)
+### Servos
+- Servo Horizontal → D6  
+- Servo Vertical → D7  
 
-TFT ST7735
-- CS  → D20  
-- DC  → D19  
+### TFT ST7735
+- CS → D20  
+- DC → D19  
 - RST → D18  
-- SCK → D15 (FSPI)  
-- MOSI→ D9 (FSPI)
+- SCK → D15  
+- MOSI → D9  
 
-Alimentação
-- ESP32-C6 → USB-C  
-- Servos → Fonte 5V dedicada
+---
+
+## 🛠️ 5. Instalação e Execução
+
+### 5.1 Instalar suporte ESP32
+Arduino IDE → Ferramentas → Gestor de Placas → ESP32 → Instalar
+
+### 5.2 Selecionar placa
+Ferramentas → Placa → ESP32 → ESP32-C6 Dev Module  
+Ferramentas → USB CDC On Boot → Enabled
+
+### 5.3 Instalar bibliotecas
+- Adafruit GFX  
+- Adafruit ST7735  
+- ESP32Servo  
+- WiFi  
+- WebServer  
+- SPI  
+
+### 5.4 Fazer Upload
+Ligar ESP32-C6 → Selecionar Porta → Upload
+
+### 5.5 Aceder ao WebServer
+O ESP32 cria um hotspot:
+
+SSID: SunTracker  
+Password: 12345678  
+IP: 192.168.4.1  
+
+Abrir no browser:  
+**http://192.168.4.1**
+
+---
+
+## 🔄 6. Modos de Funcionamento
+
+### 🟢 Modo Automático
+- Leitura contínua dos 4 LDR  
+- Cálculo das diferenças de luz  
+- Movimento dos servos dentro dos limites  
+- Alinhamento automático com a luz máxima  
+
+### 🟠 Modo Manual
+- Controlo via WebServer  
+- Ajustes incrementais dos servos  
+
+### 🔵 TFT
+Mostra:
+- LDRs  
+- Ângulos  
+- Estado atual  
+- Informações operacionais
+
+---
+
+## 🧩 7. Máquinas de Estado
+
+O sistema possui quatro máquinas de estado independentes:
+
+### SM_Luz
+- Leitura dos LDR  
+- Processamento das diferenças  
+- Cálculo da direção a mover  
+
+### SM_Servos
+- Movimento seguro dos servos  
+- Aplicação de limites  
+- Passo-a-passo não bloqueante  
+
+### SM_Interface
+- Atualização do TFT  
+- Dados em tempo real  
+
+### SM_WebServer
+- Processamento de pedidos HTTP  
+- Alteração de modo  
+- Controlo manual
+
+---
+
+## 📂 8. Estrutura do Repositório
+
+```
+SunTracker/
+├── src/
+│   ├── main.ino
+│   ├── sm_luz.cpp
+│   ├── sm_servos.cpp
+│   ├── sm_web.cpp
+│   └── sm_tft.cpp
+│
+├── docs/
+├── hardware/
+├── images/
+├── README.md
+└── LICENSE
+```
+
+---
+
+## 🧭 9. Guidelines de Desenvolvimento (Git)
+
+### Branch principal
+`main` → versão estável
+
+### Criar novas funcionalidades
+`git checkout -b feature/nome-da-feature`
+
+### Commits
+- Pequenos  
+- Bem descritos  
+- Exemplo:  
+  `git commit -m "Adiciona leitura dos LDR"`
+
+### Pull Requests
+- Nunca fazer commit direto para main  
+- PR obrigatório  
+- Merge só após revisão  
+
+### Boas práticas
+- Nada de binários pesados  
+- Nada de lixo de build  
+- Código modular e comentado  
+- Evitar delay() → usar millis()
+
+---
+
+## 🔗 10. Repositório Git
+
+Repositório oficial:  
+**https://github.com/Grxca/SunTracker**
+
+---
+
+## 📜 11. Licença
+
+Projeto distribuído sob **MIT License**.  
+Consultar ficheiro `LICENSE`.
+
