@@ -29,7 +29,6 @@ O objetivo do projeto é construir um sistema eficiente, replicável e de baixo 
 - Controlo com servomotores de posicionamento
 - Bluetooth para ativar/desativar o modo automático
 - Interface:
-  - LCD 16×2 → informações textuais
   - TFT 160×128 → representação gráfica
 - Alimentação externa 9–12 V para funcionamento autónomo
 - Implementação com máquinas de estados não bloqueantes
@@ -45,8 +44,7 @@ Hardware
 - 4 resistores (10kΩ)  
 - 2 servomotores (X/Y)  
 - Módulo Bluetooth serial  
-- LCD 16×2  ?
-- TFT 160×128 ? 
+- TFT 160×128 
 - Fonte externa 9–12 V  
 - Breadboard e cabos jumpers  
 - Estrutura mecânica 
@@ -56,5 +54,4 @@ Software
 - Drivers para Arduino  
 - Bibliotecas:
   - Servo.h (servomotores)
-  - LiquidCrystal_I2C  (LCD 16x2) ?
   - TFT_eSPI           (TFT 160x128)?
