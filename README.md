@@ -184,32 +184,30 @@ SunTracker/
 
 ---
 
-## 🧭 9. Guidelines de Desenvolvimento (Git)
+## 🧭 9. Desenvolvimento (Git)
 
-### Branch principal
+### 🔹 Branch principal
 `main` → versão estável
 
-### Criar novas funcionalidades
-`git checkout -b feature/nome-da-feature`
+### 🔹 Criar alterações
+```
+git checkout -b feature/xxx
+```
 
-### Commits
+### 🔹 Commits
 - Pequenos  
-- Bem descritos  
-- Exemplo:  
-  `git commit -m "Adiciona leitura dos LDR"`
+- Objetivos  
+- Exemplo:
+```
+git commit -m "Atualiza leitura dos LDR"
+```
 
-### Pull Requests
-- Nunca fazer commit direto para main  
-- PR obrigatório  
-- Merge só após revisão  
+### 🔹 Regras básicas
+- Evitar commits diretos na main  
+- PR recomendado  
+- Sem ficheiros pesados  
+- Código limpo e comentado
 
-### Boas práticas
-- Nada de binários pesados  
-- Nada de lixo de build  
-- Código modular e comentado  
-- Evitar delay() → usar millis()
-
----
 
 ## 🔗 10. Repositório Git
 
