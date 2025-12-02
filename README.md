@@ -68,10 +68,10 @@ Objetivo: desenvolver um sistema eficiente, modular e replicável para estudo de
 ## 🔌 Ligações Principais (ESP32-C6)
 
 ### LDRs
-- LDR1 → A0  
-- LDR2 → A1  
-- LDR3 → A2  
-- LDR4 → A3  
+- LDR1 → 2  
+- LDR2 → 3  
+- LDR3 → 4  
+- LDR4 → 5  
 
 ### Servos
 - Servo Horizontal → D6  
