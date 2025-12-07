@@ -3,67 +3,61 @@
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
 
-// ====== TFT com os PINOS QUE PEDISTE ======
-#define TFT_CS   20   // GPIO20
-#define TFT_DC   19   // GPIO19
-#define TFT_RST  18   // GPIO18
+// ====== TFT ======
+#define TFT_CS   20
+#define TFT_DC   19
+#define TFT_RST  18
+#define TFT_SCK  15
+#define TFT_MOSI 9
 
-#define TFT_SCK  15   // GPIO15
-#define TFT_MOSI  9   // GPIO9
-
-// Criar SPI manual
 SPIClass spi = SPIClass(FSPI);
-
-// *** IMPORTANTE: usar este construtor ***
 Adafruit_ST7735 tft = Adafruit_ST7735(&spi, TFT_CS, TFT_DC, TFT_RST);
 
 // ====== SERVOS ======
 #define SERVO_H_PIN 23
-#define SERVO_V_PIN 23
+#define SERVO_V_PIN 22
 
 Servo servoH;
 Servo servoV;
 
-// ====== LDRs (ADC válidos) ======
-#define LDR_TL 2
-#define LDR_TR 3
-#define LDR_LL 4
-#define LDR_LR 5
+// ====== LDRs ======
+#define LDR_TL 2   // Top Left
+#define LDR_TR 3   // Top Right
+#define LDR_LL 4   // Bottom Left
+#define LDR_LR 5   // Bottom Right
 
 // ====== VARIÁVEIS ======
-int servohori = 180;
-int servovert = 45;
+int servohori = 90;  
+int servovert = 90;
 
 int tl, tr, ll, lr;
 int dvert, dhoriz;
-int tol = 90;
 
 unsigned long lastServo = 0;
 unsigned long lastTFT = 0;
 const unsigned long servoInterval = 10;
-const unsigned long tftInterval = 400;
+const unsigned long tftInterval   = 300;
+
+int tol = 90;  // tolerância
 
 // ====== SETUP ======
 void setup() {
 
-  // INICIAR SPI COM OS TEUS PINOS
   spi.begin(TFT_SCK, -1, TFT_MOSI);
 
-  // TFT
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(1);
   tft.fillScreen(ST77XX_BLACK);
 
   tft.setTextColor(ST77XX_GREEN);
-  tft.setTextSize(1);
   tft.setCursor(10,10);
   tft.println("SUN TRACKER");
-  delay(1500);
+  delay(1000);
   tft.fillScreen(ST77XX_BLACK);
 
-  // SERVOS
   servoH.attach(SERVO_H_PIN);
   servoV.attach(SERVO_V_PIN);
+
   servoH.write(servohori);
   servoV.write(servovert);
 }
@@ -85,6 +79,7 @@ void loop() {
 
 // ====== SERVOS ======
 void atualizarServos() {
+
   tl = analogRead(LDR_TL);
   tr = analogRead(LDR_TR);
   ll = analogRead(LDR_LL);
@@ -95,20 +90,24 @@ void atualizarServos() {
   int avL = (tl + ll) / 2;
   int avR = (tr + lr) / 2;
 
-  dvert = avT - avB;
+  dvert  = avT - avB;
   dhoriz = avL - avR;
 
+  // ===== VERTICAL =====
   if (abs(dvert) > tol) {
-    if (avT > avB) servovert++;
-    else servovert--;
-    servoV.write(servovert);
+    if (avT > avB) servovert--;    // luz em cima → subir
+    else           servovert++;    // luz em baixo → descer
   }
+  servovert = constrain(servovert, 0, 180);
+  servoV.write(servovert);
 
+  // ===== HORIZONTAL =====
   if (abs(dhoriz) > tol) {
-    if (avL > avR) servohori--;
-    else servohori++;
-    servoH.write(servohori);
+    if (avL > avR) servohori--;    // luz à esquerda
+    else           servohori++;    // luz à direita
   }
+  servohori = constrain(servohori, 0, 180);
+  servoH.write(servohori);
 }
 
 // ====== TFT ======
@@ -116,32 +115,29 @@ void atualizarTFT() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextSize(1);
 
-  // ===== LDRs =====
   tft.setTextColor(ST77XX_YELLOW);
   tft.setCursor(1, 1);
   tft.println("LDRs");
 
   tft.setTextColor(ST77XX_WHITE);
-  tft.setCursor(1, 11);   tft.printf("TL:%4d", tl);
-  tft.setCursor(1, 21);   tft.printf("TR:%4d", tr);
-  tft.setCursor(1, 31);   tft.printf("LL:%4d", ll);
-  tft.setCursor(1, 41);   tft.printf("LR:%4d", lr);
+  tft.setCursor(1, 12);  tft.printf("TL:%4d", tl);
+  tft.setCursor(1, 22);  tft.printf("TR:%4d", tr);
+  tft.setCursor(1, 32);  tft.printf("LL:%4d", ll);
+  tft.setCursor(1, 42);  tft.printf("LR:%4d", lr);
 
-  // ===== DIFERENCAS =====
   tft.setTextColor(ST77XX_CYAN);
-  tft.setCursor(1, 55);
-  tft.println("DIF");
+  tft.setCursor(1, 58);
+  tft.println("DV/DH");
 
   tft.setTextColor(ST77XX_WHITE);
-  tft.setCursor(1, 65);   tft.printf("V:%4d", dvert);
-  tft.setCursor(1, 75);   tft.printf("H:%4d", dhoriz);
+  tft.setCursor(1, 68);  tft.printf("V:%4d", dvert);
+  tft.setCursor(1, 78);  tft.printf("H:%4d", dhoriz);
 
-  // ===== SERVOS =====
   tft.setTextColor(ST77XX_GREEN);
-  tft.setCursor(1, 90);
-  tft.println("SERVO");
+  tft.setCursor(1, 95);
+  tft.println("SERVOS");
 
   tft.setTextColor(ST77XX_WHITE);
-  tft.setCursor(1, 100);   tft.printf("H:%3d", servohori);
-  tft.setCursor(1, 110);   tft.printf("V:%3d", servovert);
+  tft.setCursor(1, 105);  tft.printf("H:%3d", servohori);
+  tft.setCursor(1, 115);  tft.printf("V:%3d", servovert);
 }
