@@ -36,15 +36,18 @@ Servo servoV;
 // ===============================
 //          VARIÁVEIS
 // ===============================
-int servohori = 90; // posição inicial
-int servovert = 0;  // posição inicial vertical que pediste
+int servohori = 90;
+int servovert = 0;
 
 int tl, tr, ll, lr;
 int dvert, dhoriz;
 
-const int tol = 90;        // tolerância de luz
+const int tol = 90;
 bool modoAutomatico = true;
 bool limitesAtivos = true;
+
+// DEBUG controlado pelo utilizador (ativado quando entra no WebServer)
+bool debugAtivo = false;
 
 unsigned long lastServo = 0;
 unsigned long lastTFT = 0;
@@ -52,7 +55,7 @@ const unsigned long servoInterval = 15;
 const unsigned long tftInterval = 350;
 
 // ===============================
-//          Wi-Fi e WebServer
+//          WIFI
 // ===============================
 const char* ssid = "SunTracker";
 const char* password = "12345678";
@@ -60,95 +63,183 @@ const char* password = "12345678";
 WebServer server(80);
 
 // ===============================
-//           HTML PAGE
+//          HTML
 // ===============================
 const char htmlPage[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
+
+<!-- Página responsiva no telemóvel -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>SunTracker</title>
+
 <style>
-  body { background:#111; color:white; text-align:center; font-family:Arial; }
-  button { width:140px; height:45px; margin:8px; font-size:18px; border-radius:10px; border:none; color:white; }
+  body {
+    background:#111;
+    color:white;
+    text-align:center;
+    font-family:Arial;
+    margin:0;
+    padding:0;
+  }
+
+  h1 {
+    margin-top: 20px;
+    font-size: 30px;
+    font-weight: bold;
+  }
+
+  h2 {
+    margin-top: 18px;
+    font-size: 23px;
+  }
+
+  /* Botões principais */
+  button {
+    width: 75%;
+    max-width: 260px;
+    height: 48px;
+    margin: 10px auto;
+    font-size: 20px;
+    border-radius: 12px;
+    border: none;
+    color: white;
+    display: block;
+  }
+
   .g { background:#28a745; }
   .r { background:#c0392b; }
   .b { background:#2980b9; }
-  .y { background:#f39c12; }
-  .arrow { background:#444; width:100px; height:50px; font-size:28px; }
+
+  /* Botões de setas */
+  .arrow {
+    background:#444;
+    width: 70px;
+    height: 70px;
+    font-size: 32px;
+    display: inline-flex;
+    justify-content:center;
+    align-items:center;
+    border-radius: 12px;
+    margin: 6px;
+  }
+
+  #modoTxt {
+    font-size: 20px;
+    margin-top: 10px;
+  }
 </style>
 </head>
+
 <body>
 
 <h1>SunTracker</h1>
 
 <h2>Modo de Operação</h2>
+
 <button class="g" onclick="setModo('auto')">Automático</button>
 <button class="r" onclick="setModo('manual')">Manual</button>
+
 <p id="modoTxt">---</p>
 
 <h2>Horizontal</h2>
-<button class="arrow" onclick="move('left')">&#9664;</button>
-<button class="arrow" onclick="move('right')">&#9654;</button>
+
+<div>
+  <button class="arrow" onclick="move('left')">&#9664;</button>
+  <button class="arrow" onclick="move('right')">&#9654;</button>
+</div>
 
 <h2>Vertical</h2>
-<button class="arrow" onclick="move('up')">&#9650;</button><br>
-<button class="arrow" onclick="move('down')">&#9660;</button>
+
+<div>
+  <button class="arrow" onclick="move('up')">&#9650;</button>
+</div>
+<div>
+  <button class="arrow" onclick="move('down')">&#9660;</button>
+</div>
 
 <h2>Ações</h2>
+
 <button class="b" onclick="resetServos()">Reset</button>
-<button class="y" onclick="limites()">Limites</button>
 
 <script>
-function setModo(m){ fetch('/setModo?m='+m); }
-function move(d){ fetch('/move?dir='+d); }
-function resetServos(){ fetch('/resetServos'); }
-function limites(){ fetch('/limites'); }
 
+function setModo(m){
+  fetch('/setModo?m='+m);
+}
+
+function move(d){
+  fetch('/move?dir='+d);
+}
+
+function resetServos(){
+  fetch('/resetServos');
+}
+
+/* Atualiza o texto do modo a cada 200ms */
 setInterval(() => {
  fetch('/modoAtual')
-   .then(r=>r.text())
-   .then(t=>document.getElementById('modoTxt').innerText=t);
+   .then(r => r.text())
+   .then(t => document.getElementById('modoTxt').innerText = t);
 }, 200);
+
 </script>
 
 </body>
 </html>
+
 )rawliteral";
 
 // ===============================
-//     FUNÇÕES DO WEBSERVER
+//     WEBSERVER HANDLERS
 // ===============================
-
-void handleRoot() { server.send(200, "text/html", htmlPage); }
+void handleRoot() {
+  debugAtivo = true; // ATIVA DEBUG AO ENTRAR NO WEBPAGE
+  Serial.println(">>> Cliente abriu o WebServer. Debug ativado.");
+  server.send(200, "text/html", htmlPage);
+}
 
 void handleSetModo() {
   String m = server.arg("m");
   modoAutomatico = (m == "auto");
+
+  if (debugAtivo) {
+    Serial.print(">>> Modo alterado para: ");
+    Serial.println(modoAutomatico ? "Automático" : "Manual");
+  }
+
   server.send(200, "text/plain", "OK");
 }
 
 void handleMove() {
   if (!modoAutomatico) {
     String d = server.arg("dir");
+    int passo = 5;
 
-  int passo = 5;  // Movimento por clique
+    if (d == "left")  servohori -= passo;
+    if (d == "right") servohori += passo;
+    if (d == "up")    servovert -= passo;
+    if (d == "down")  servovert += passo;
 
-  if (d == "left")  servohori -= passo;
-  if (d == "right") servohori += passo;
-  if (d == "up")    servovert -= passo;
-  if (d == "down")  servovert += passo;
+    if (limitesAtivos) {
+      servohori = constrain(servohori, 5, 175);
+      servovert = constrain(servovert, 1, 100);
+    }
 
-  // Limites mecânicos
-  if (limitesAtivos) {
-    servohori = constrain(servohori, 5, 175);
-    servovert = constrain(servovert, 1, 100);
-  }
+    servoH.write(servohori);
+    servoV.write(servovert);
 
-  servoH.write(servohori);
-  servoV.write(servovert);
-
-  
+    if (debugAtivo) {
+      Serial.print(">>> Movimento Manual: ");
+      Serial.print(d);
+      Serial.print(" | H=");
+      Serial.print(servohori);
+      Serial.print(" | V=");
+      Serial.println(servovert);
+    }
   }
 
   server.send(200, "text/plain", "OK");
@@ -161,12 +252,20 @@ void handleReset() {
   servoH.write(servohori);
   servoV.write(servovert);
 
+  if (debugAtivo) Serial.println(">>> RESET executado!");
+
   server.send(200, "text/plain", "OK");
 }
 
 void handleLimites() {
   limitesAtivos = !limitesAtivos;
-  server.send(200, "text/plain", limitesAtivos ? "Limites ATIVOS" : "Limites DESATIVADOS");
+
+  if (debugAtivo) {
+    Serial.print(">>> Limites agora estão: ");
+    Serial.println(limitesAtivos ? "ATIVOS" : "DESATIVADOS");
+  }
+
+  server.send(200, "text/plain", limitesAtivos ? "Ativos" : "Desativados");
 }
 
 void handleModoAtual() {
@@ -174,11 +273,10 @@ void handleModoAtual() {
 }
 
 // ===============================
-//     ATUALIZAÇÃO DOS SERVOS
+//     ATUALIZAÇÃO AUTOMÁTICA
 // ===============================
 void atualizarServos() {
-
-  if (!modoAutomatico) return; // manual -> não mexer automaticamente
+  if (!modoAutomatico) return;
 
   tl = analogRead(LDR_TL);
   tr = analogRead(LDR_TR);
@@ -193,13 +291,11 @@ void atualizarServos() {
   dvert  = avT - avB;
   dhoriz = avL - avR;
 
-  // VERTICAL
   if (abs(dvert) > tol) {
     if (avT > avB) servovert--;
     else           servovert++;
   }
 
-  // HORIZONTAL
   if (abs(dhoriz) > tol) {
     if (avL > avR) servohori--;
     else           servohori++;
@@ -212,13 +308,28 @@ void atualizarServos() {
 
   servoH.write(servohori);
   servoV.write(servovert);
+
+  if (debugAtivo) {
+    Serial.print("LDRs: TL=");
+    Serial.print(tl);
+    Serial.print(" TR=");
+    Serial.print(tr);
+    Serial.print(" LL=");
+    Serial.print(ll);
+    Serial.print(" LR=");
+    Serial.println(lr);
+
+    Serial.print("Servos -> H:");
+    Serial.print(servohori);
+    Serial.print(" | V:");
+    Serial.println(servovert);
+  }
 }
 
 // ===============================
 //     ATUALIZAR TFT
 // ===============================
 void atualizarTFT() {
-
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextSize(1);
 
@@ -250,7 +361,6 @@ void atualizarTFT() {
 void setup() {
   Serial.begin(115200);
 
-  // TFT
   spi.begin(TFT_SCK, -1, TFT_MOSI);
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(1);
@@ -262,11 +372,17 @@ void setup() {
   servoH.write(servohori);
   servoV.write(servovert);
 
-  // WiFi
   WiFi.softAP(ssid, password);
-  Serial.println("WebServer Ativo!");
 
-  // Rotas
+  // APENAS MOSTRAR INFO DO WIFI
+  Serial.println("====================================");
+  Serial.println("        SUNTRACKER INICIADO!");
+  Serial.println("====================================");
+  Serial.print("SSID: "); Serial.println(ssid);
+  Serial.print("Password: "); Serial.println(password);
+  Serial.print("IP do Servidor: "); Serial.println(WiFi.softAPIP());
+  Serial.println("====================================");
+
   server.on("/", handleRoot);
   server.on("/setModo", handleSetModo);
   server.on("/move", handleMove);
