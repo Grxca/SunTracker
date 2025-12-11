@@ -56,7 +56,7 @@ int lerLR() { return corrigirLDR(analogRead(LDR_LR), fLR); }
 // ===============================
 //          VARIÁVEIS
 // ===============================
-int servohori = 0;
+int servohori = 90;
 int servovert = 90;
 
 int tl, tr, ll, lr;
@@ -173,7 +173,7 @@ void handleMove() {
     if (d == "down")  servovert += passo;
 
     servohori = constrain(servohori, 0, 180);
-    servovert = constrain(servovert, 30, 150);
+    servovert = constrain(servovert, 45,135);
 
     servoH.write(servohori);
     servoV.write(servovert);
@@ -188,7 +188,7 @@ void handleMove() {
 }
 
 void handleReset() {
-  servohori = 0;
+  servohori = 90;
   servovert = 90;
 
   servoH.write(servohori);
