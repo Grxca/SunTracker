@@ -13,6 +13,7 @@
 #define TFT_RST  18
 #define TFT_SCK  15
 #define TFT_MOSI 9
+
 SPIClass spi = SPIClass(FSPI);
 Adafruit_ST7735 tft = Adafruit_ST7735(&spi, TFT_CS, TFT_DC, TFT_RST);
 
@@ -56,8 +57,8 @@ int lerLR() { return corrigirLDR(analogRead(LDR_LR), fLR); }
 // ===============================
 //          VARIÁVEIS
 // ===============================
-int servohori = 90;
-int servovert = 90;
+int servohori = 80;    // horizontal começa 10º à esquerda
+int servovert = 105;  // vertical começa a 105º
 
 int tl, tr, ll, lr;
 int dvert, dhoriz;
@@ -67,7 +68,7 @@ bool modoAutomatico = true;
 
 unsigned long lastServo = 0;
 unsigned long lastTFT = 0;
-const unsigned long servoInterval = 30;
+const unsigned long servoInterval = 50;
 const unsigned long tftInterval = 350;
 
 // ===============================
@@ -135,6 +136,7 @@ const char htmlPage[] PROGMEM = R"rawliteral(
 function setModo(m){ fetch('/setModo?m='+m); }
 function move(d){ fetch('/move?dir='+d); }
 function resetServos(){ fetch('/resetServos'); }
+
 setInterval(() => {
  fetch('/modoAtual')
    .then(r => r.text())
@@ -150,22 +152,18 @@ setInterval(() => {
 //     WEBSERVER HANDLERS
 // ===============================
 void handleRoot() {
-  Serial.println("Cliente abriu o WebServer.");
   server.send(200, "text/html", htmlPage);
 }
 
 void handleSetModo() {
   modoAutomatico = (server.arg("m") == "auto");
-  Serial.print("Modo alterado para: ");
-  Serial.println(modoAutomatico ? "Automático" : "Manual");
   server.send(200, "text/plain", "OK");
 }
 
 void handleMove() {
   if (!modoAutomatico) {
-
-    String d = server.arg("dir");
     int passo = 5;
+    String d = server.arg("dir");
 
     if (d == "left")  servohori -= passo;
     if (d == "right") servohori += passo;
@@ -173,31 +171,22 @@ void handleMove() {
     if (d == "down")  servovert += passo;
 
     servohori = constrain(servohori, 0, 180);
-    servovert = constrain(servovert, 45,135);
+    servovert = constrain(servovert, 45, 135);
 
     servoH.write(servohori);
     servoV.write(servovert);
-
-    Serial.print("Manual → H=");
-    Serial.print(servohori);
-    Serial.print(" | V=");
-    Serial.println(servovert);
   }
-
   server.send(200, "text/plain", "OK");
 }
 
 void handleReset() {
-  servohori = 90;
-  servovert = 90;
+  servohori = 80;
+  servovert = 105;
 
   servoH.write(servohori);
   servoV.write(servovert);
 
-  Serial.println("RESET executado → H=0 | V=90");
-
-  delay(300);
-
+  Serial.println("RESET → H=80 | V=105");
   server.send(200, "text/plain", "OK");
 }
 
@@ -224,22 +213,11 @@ void atualizarServos() {
   dvert  = avT - avB;
   dhoriz = avL - avR;
 
-  Serial.print("LDRs → TL=");
-  Serial.print(tl);
-  Serial.print(" TR=");
-  Serial.print(tr);
-  Serial.print(" LL=");
-  Serial.print(ll);
-  Serial.print(" LR=");
-  Serial.println(lr);
-
-  // Vertical
   if (abs(dvert) > tol) {
     if (avT > avB && servovert > 30) servovert--;
     else if (avB > avT && servovert < 150) servovert++;
   }
 
-  // Horizontal
   if (abs(dhoriz) > tol) {
     if (avL > avR && servohori > 0) servohori--;
     else if (avR > avL && servohori < 180) servohori++;
@@ -247,11 +225,6 @@ void atualizarServos() {
 
   servoH.write(servohori);
   servoV.write(servovert);
-
-  Serial.print("AUTO → H=");
-  Serial.print(servohori);
-  Serial.print(" | V=");
-  Serial.println(servovert);
 }
 
 // ===============================
@@ -261,10 +234,13 @@ void atualizarTFT() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextSize(1);
 
-  tft.setCursor(2, 2);  tft.setTextColor(ST77XX_CYAN); tft.println("SUN TRACKER");
+  tft.setCursor(2, 2);
+  tft.setTextColor(ST77XX_CYAN);
+  tft.println("SUN TRACKER");
 
   tft.setTextColor(ST77XX_YELLOW);
-  tft.setCursor(2, 20); tft.println("LDRs");
+  tft.setCursor(2, 20);
+  tft.println("LDRs");
 
   tft.setTextColor(ST77XX_WHITE);
   tft.setCursor(2, 35); tft.printf("TL:%4d", tl);
@@ -273,7 +249,8 @@ void atualizarTFT() {
   tft.setCursor(2, 65); tft.printf("LR:%4d", lr);
 
   tft.setTextColor(ST77XX_GREEN);
-  tft.setCursor(2, 85); tft.println("Servos");
+  tft.setCursor(2, 85);
+  tft.println("Servos");
 
   tft.setCursor(2, 100); tft.printf("H:%3d", servohori);
   tft.setCursor(2, 110); tft.printf("V:%3d", servovert);
@@ -297,8 +274,6 @@ void setup() {
   servoV.write(servovert);
 
   WiFi.softAP(ssid, password);
-  Serial.print("IP do servidor: ");
-  Serial.println(WiFi.softAPIP());
 
   server.on("/", handleRoot);
   server.on("/setModo", handleSetModo);
@@ -313,7 +288,6 @@ void setup() {
 //              LOOP
 // ===============================
 void loop() {
-
   server.handleClient();
 
   unsigned long now = millis();
